@@ -19,9 +19,6 @@ const skillSchema = new mongoose.Schema(
   }
 );
 
-// Index for faster lookups by name
-skillSchema.index({ name: 1 });
-
 // Index for filtering by category
 skillSchema.index({ category: 1 });
 

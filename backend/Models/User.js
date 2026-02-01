@@ -71,9 +71,6 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-// Index for faster email lookups
-userSchema.index({ email: 1 });
-
 // Index for filtering by education level
 userSchema.index({ educationLevel: 1 });
 

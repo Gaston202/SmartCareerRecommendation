@@ -32,9 +32,6 @@ const careerSchema = new mongoose.Schema(
   }
 );
 
-// Index for faster lookups by title
-careerSchema.index({ title: 1 });
-
 // Index for filtering by industry
 careerSchema.index({ industry: 1 });
 

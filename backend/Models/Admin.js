@@ -36,9 +36,6 @@ const adminSchema = new mongoose.Schema(
   }
 );
 
-// Index for faster email lookups
-adminSchema.index({ email: 1 });
-
 const Admin = mongoose.model('Admin', adminSchema);
 
 module.exports = Admin;

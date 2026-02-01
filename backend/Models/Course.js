@@ -32,9 +32,6 @@ const courseSchema = new mongoose.Schema(
   }
 );
 
-// Index for faster lookups by title
-courseSchema.index({ title: 1 });
-
 // Index for filtering by provider
 courseSchema.index({ provider: 1 });
 
