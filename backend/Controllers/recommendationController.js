@@ -15,8 +15,8 @@ const generateRecommendations = async (req, res) => {
     const { limit = 5 } = req.body;
 
     // Step 1: Fetch user skills with proficiency levels
-    const userSkills = await UserSkill.find({ userId })
-      .populate('skillId', 'name category');
+    const userSkills = await UserSkill.find({ user: userId })
+      .populate('skill', 'name category');
 
     if (!userSkills || userSkills.length === 0) {
       return res.status(400).json({
@@ -27,9 +27,11 @@ const generateRecommendations = async (req, res) => {
 
     // Create a map of user skills with proficiency
     const userSkillMap = new Map();
+    const levelToScore = { BEGINNER: 1, INTERMEDIATE: 2, ADVANCED: 3 };
+    
     userSkills.forEach(us => {
-      if (us.skillId && us.skillId._id) {
-        userSkillMap.set(us.skillId._id.toString(), us.proficiencyLevel || 1);
+      if (us.skill && us.skill._id) {
+        userSkillMap.set(us.skill._id.toString(), levelToScore[us.level] || 1);
       }
     });
 
@@ -93,11 +95,11 @@ const generateRecommendations = async (req, res) => {
 
     // Step 4: Save recommendations to database
     // Delete old recommendations for this user
-    await Recommendation.deleteMany({ userId });
+    await Recommendation.deleteMany({ user: userId });
 
     const recommendationDocs = topRecommendations.map(rec => ({
-      userId,
-      careerId: rec.careerId,
+      user: userId,
+      career: rec.careerId,
       score: rec.score,
       matchPercentage: rec.matchPercentage,
       reason: `Matched ${rec.matchedSkills} out of ${rec.totalRequiredSkills} required skills`
@@ -106,9 +108,9 @@ const generateRecommendations = async (req, res) => {
     const savedRecommendations = await Recommendation.insertMany(recommendationDocs);
 
     // Step 5: Fetch full recommendation details with career info
-    const fullRecommendations = await Recommendation.find({ userId })
+    const fullRecommendations = await Recommendation.find({ user: userId })
       .populate({
-        path: 'careerId',
+        path: 'career',
         select: 'title description industry averageSalary requiredSkills growthRate',
         populate: {
           path: 'requiredSkills',
@@ -141,9 +143,9 @@ const getRecommendationsByUser = async (req, res) => {
   try {
     const { userId } = req.params;
 
-    const recommendations = await Recommendation.find({ userId })
+    const recommendations = await Recommendation.find({ user: userId })
       .populate({
-        path: 'careerId',
+        path: 'career',
         select: 'title description industry averageSalary requiredSkills growthRate',
         populate: {
           path: 'requiredSkills',
@@ -165,8 +167,8 @@ const getRecommendationsByUser = async (req, res) => {
         const recObj = rec.toObject();
         
         // Find courses that teach the required skills
-        if (rec.careerId && rec.careerId.requiredSkills) {
-          const skillIds = rec.careerId.requiredSkills.map(s => s._id);
+        if (rec.career && rec.career.requiredSkills) {
+          const skillIds = rec.career.requiredSkills.map(s => s._id);
           const suggestedCourses = await Course.find({
             skillsTaught: { $in: skillIds }
           })
